@@ -1,0 +1,54 @@
+# Netlify configuration for Feature Desk
+# Handles build settings and serverless functions
+
+[build]
+  # Build command - builds the Vite React app
+  command = "npm run build"
+  
+  # Output directory (Vite outputs to 'dist')
+  publish = "dist"
+  
+  # Netlify Functions directory
+  functions = "netlify/functions"
+
+[build.environment]
+  # Node version for build
+  NODE_VERSION = "18"
+
+# ── Pass-through rules MUST come BEFORE the SPA catch-all ──
+# Without these, Netlify's /* → index.html intercepts JS chunk requests,
+# causing: TypeError: Failed to fetch dynamically imported module
+
+[[redirects]]
+  # Let Netlify serve actual JS/CSS/image asset files directly
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+  force = false
+
+[[redirects]]
+  # API proxy - redirect /api/* to Netlify Functions
+  from = "/api/*"
+  to = "/.netlify/functions/mongodb"
+  status = 200
+
+[[redirects]]
+  # SPA fallback - LAST resort: redirect unmatched routes to index.html
+  # Netlify evaluates redirects in order, so assets are already handled above
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  # Bundle functions with dependencies
+  node_bundler = "esbuild"
+  
+  # Functions directory
+  directory = "netlify/functions"
+
+# Environment variables (set these in Netlify dashboard)
+# MONGODB_URI = your MongoDB Atlas connection string
+# MONGODB_DB_NAME = feature_desk_db
+# VITE_SUPABASE_URL = your Supabase URL
+# VITE_SUPABASE_ANON_KEY = your Supabase anon key
+# VITE_GEMINI_API_KEY = your Gemini API key
