@@ -1,3 +1,11 @@
+## License
+
+Copyright © 2026 [Your Name]. All rights reserved. 
+
+This project and its code are proprietary. Unauthorized copying, modification, 
+or distribution of this file via any medium is strictly prohibited.
+
+
 # Feature Desk G - Complete Documentation
 
 ## 1. Project Overview
