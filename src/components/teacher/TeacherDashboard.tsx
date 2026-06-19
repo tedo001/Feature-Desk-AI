@@ -18,7 +18,8 @@ import {
   Upload,
   Users2,
   FolderOpen,
-  ClipboardList
+  ClipboardList,
+  Activity
 } from 'lucide-react';
 
 // Import Teacher Portal Components
@@ -33,7 +34,7 @@ import TeacherCollaboration from './TeacherCollaboration';
 import StudyMaterialsManager from './StudyMaterialsManager';
 import AssessmentManager from './AssessmentManager';
 import StudentPerformanceDashboard from './StudentPerformanceDashboard';
-import { TeacherPerformanceMonitor } from '../cv';
+import { TeacherPerformanceMonitor, CvReportDashboard } from '../cv';
 
 // Import database functions
 import { getClassAnalytics, getStudentsNeedingIntervention, getPendingResults } from '../../lib/teacherDb';
@@ -68,6 +69,7 @@ export default function TeacherDashboard() {
   const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },
     { id: 'analytics', name: 'Analytics', icon: TrendingUp },
+    { id: 'cv-report', name: 'CV Report', icon: Activity },
     { id: 'performance', name: 'Performance', icon: Target },
     { id: 'assessments', name: 'Assessments', icon: ClipboardList },
     { id: 'students', name: 'Students', icon: Users },
@@ -400,6 +402,11 @@ export default function TeacherDashboard() {
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
             <AnalyticsDashboard classId={assignedClass} />
+          )}
+
+          {/* CV Analysis Report Tab */}
+          {activeTab === 'cv-report' && (
+            <CvReportDashboard />
           )}
 
           {/* Performance Tab */}

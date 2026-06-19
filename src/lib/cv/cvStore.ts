@@ -80,6 +80,24 @@ export async function getLatestPerStudent(limit = 300): Promise<CvAttention[]> {
   return out;
 }
 
+/** Best-effort student id -> name lookup (falls back to id if unavailable). */
+export async function getStudentNames(ids: string[]): Promise<Record<string, string>> {
+  const map: Record<string, string> = {};
+  if (ids.length === 0) return map;
+  try {
+    const { data } = await supabase
+      .from("students")
+      .select("id, student_name")
+      .in("id", ids);
+    for (const row of (data ?? []) as { id: string; student_name?: string }[]) {
+      if (row.student_name) map[row.id] = row.student_name;
+    }
+  } catch {
+    // students table/columns may differ — fall back to ids silently
+  }
+  return map;
+}
+
 /** Subscribe to live inserts on cv_attention. Returns an unsubscribe fn. */
 export function subscribeAttention(onInsert: (row: CvAttention) => void): () => void {
   const channel = supabase

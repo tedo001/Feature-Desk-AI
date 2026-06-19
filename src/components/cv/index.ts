@@ -2,4 +2,5 @@
 export { default as StudentMonitoringPanel } from "./StudentMonitoringPanel";
 export { default as WebMonitoringPanel } from "./WebMonitoringPanel";
 export { default as TeacherPerformanceMonitor } from "./TeacherPerformanceMonitor";
+export { default as CvReportDashboard } from "./CvReportDashboard";
 export { isLocalDevice } from "../../lib/cv/localGuard";
