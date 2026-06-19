@@ -51,6 +51,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true
+      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'maskable-icon.png'],
       manifest: {
         name: 'Feature Desk',
@@ -159,7 +162,7 @@ export default defineConfig({
     },
     headers: {
       // Allow unsafe-eval for PhET simulations which require eval()
-      'Content-Security-Policy': "script-src 'self' 'unsafe-inline' 'unsafe-eval'; default-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss: ws:;"
+      'Content-Security-Policy': "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; default-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss: ws:;"
     },
     // Allow accessing files in lab and Physics_lab folders
     fs: {

@@ -32,6 +32,7 @@ import BatchQuestionImport from './BatchQuestionImport';
 import TeacherCollaboration from './TeacherCollaboration';
 import StudyMaterialsManager from './StudyMaterialsManager';
 import AssessmentManager from './AssessmentManager';
+import StudentPerformanceDashboard from './StudentPerformanceDashboard';
 import { TeacherPerformanceMonitor } from '../cv';
 
 // Import database functions
@@ -67,6 +68,7 @@ export default function TeacherDashboard() {
   const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },
     { id: 'analytics', name: 'Analytics', icon: TrendingUp },
+    { id: 'performance', name: 'Performance', icon: Target },
     { id: 'assessments', name: 'Assessments', icon: ClipboardList },
     { id: 'students', name: 'Students', icon: Users },
     { id: 'content', name: 'Content', icon: BookOpen },
@@ -398,6 +400,11 @@ export default function TeacherDashboard() {
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
             <AnalyticsDashboard classId={assignedClass} />
+          )}
+
+          {/* Performance Tab */}
+          {activeTab === 'performance' && (
+            <StudentPerformanceDashboard classId={assignedClass} />
           )}
 
           {/* Assessments Tab */}

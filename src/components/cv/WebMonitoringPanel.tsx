@@ -65,6 +65,7 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
 
       timerRef.current = window.setInterval(tick, ANALYZE_MS);
     } catch (e) {
+      console.error("Monitoring start error:", e);
       setLoadingModel(false);
       setError(e instanceof Error ? e.message : "Could not start monitoring.");
       stop();
@@ -138,18 +139,28 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
           </button>
 
           {result && (
-            <div className="mt-3 flex items-center gap-3">
-              <span
-                className={`rounded-full px-3 py-1 text-sm font-semibold ${
-                  STATUS_COLOR[result.status] ?? "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {result.status}
-              </span>
-              <span className="text-2xl font-bold text-gray-800">{result.attention}%</span>
-              <span className="text-sm text-gray-500">
-                faces {result.faces} {result.phone ? "· 📱" : ""}
-              </span>
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                    STATUS_COLOR[result.status] ?? "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {result.status}
+                </span>
+                <span className="text-2xl font-bold text-gray-800">{result.attention}%</span>
+                <span className="text-sm text-gray-500">
+                  faces {result.faces} {result.phone ? "· 📱" : ""}
+                </span>
+              </div>
+              <div className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-gray-200">
+                <div
+                  className={`h-full transition-all duration-300 ease-out ${
+                    result.attention >= 80 ? "bg-green-500" : result.attention >= 50 ? "bg-amber-500" : "bg-red-500"
+                  }`}
+                  style={{ width: `${result.attention}%` }}
+                />
+              </div>
             </div>
           )}
           {enabled && mode && (
