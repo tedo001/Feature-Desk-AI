@@ -40,6 +40,18 @@ export async function setMonitoringEnabled(
   );
 }
 
+/** Insert one live result (browser CV writes directly to Supabase). */
+export async function pushAttention(row: CvAttention): Promise<void> {
+  await supabase.from("cv_attention").insert({
+    student_id: row.student_id,
+    exam_id: row.exam_id ?? null,
+    status: row.status,
+    attention: row.attention,
+    phone: row.phone,
+    faces: row.faces,
+  });
+}
+
 export async function getLatestForStudent(studentId: string): Promise<CvAttention | null> {
   const { data } = await supabase
     .from("cv_attention")

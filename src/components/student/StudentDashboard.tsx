@@ -6,7 +6,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import WritingCanvas from './WritingCanvas';
 import CentralHub from './CentralHub';
-import { StudentMonitoringPanel } from '../cv';
+import { WebMonitoringPanel } from '../cv';
 
 // Inspiring quotes for students
 const inspiringQuotes = [
@@ -160,10 +160,10 @@ export default function StudentDashboard() {
                 {/* Central Hub - Floating circular menu */}
                 <CentralHub />
 
-                {/* AI CV microservice — monitoring_range. Self-hides on web host
-                    and when no student is logged in; floats so it never shifts layout. */}
+                {/* AI CV microservice — in-browser monitoring (runs on the web host).
+                    Hidden only when no student is logged in; floats so it never shifts layout. */}
                 <div className="fixed bottom-4 left-4 z-40 w-80 max-w-[90vw]">
-                    <StudentMonitoringPanel />
+                    <WebMonitoringPanel />
                 </div>
 
             </main>
