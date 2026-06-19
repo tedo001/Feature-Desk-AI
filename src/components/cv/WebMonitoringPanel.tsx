@@ -36,6 +36,8 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
   const [result, setResult] = useState<CvResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"GPU" | "CPU" | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [synced, setSynced] = useState(false);
 
   useEffect(() => () => stop(), []); // cleanup on unmount
 
@@ -82,7 +84,10 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
     const now = Date.now();
     if (studentId && now - lastPushRef.current >= PUSH_MS) {
       lastPushRef.current = now;
-      void pushAttention({ student_id: studentId, exam_id: examId, ...r });
+      void pushAttention({ student_id: studentId, exam_id: examId, ...r }).then(({ error }) => {
+        setSyncError(error);
+        setSynced(!error);
+      });
     }
   }
 
@@ -97,6 +102,8 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
     engineRef.current = null;
     setResult(null);
     setEnabled(false);
+    setSyncError(null);
+    setSynced(false);
     if (studentId) void setMonitoringEnabled(studentId, false, examId);
   }
 
@@ -166,6 +173,13 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
           {enabled && mode && (
             <p className="mt-2 text-xs text-gray-400">
               running on {mode === "GPU" ? "GPU (fast)" : "CPU (lite mode — works without a GPU)"}
+              {synced && " · ✓ shared with teacher"}
+            </p>
+          )}
+          {syncError && (
+            <p className="mt-1 text-xs text-red-500">
+              ⚠ Not reaching the teacher dashboard: {syncError}. Check Supabase setup
+              (env keys + run database/cv_microservice_schema.sql).
             </p>
           )}
         </div>
