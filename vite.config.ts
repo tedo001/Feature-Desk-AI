@@ -51,6 +51,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // The app bundle is >2 MB; raise the precache limit so the service-worker
+        // build doesn't fail (workbox default is 2 MiB).
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       devOptions: {
         enabled: true
       },
