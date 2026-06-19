@@ -24,20 +24,30 @@ export interface FrameMetrics {
 
 let landmarker: FaceLandmarkerT | null = null;
 let loading: Promise<FaceLandmarkerT> | null = null;
+export let activeDelegate: "GPU" | "CPU" | null = null;
 
-/** Download + initialise the model once (cached by the browser afterwards). */
+/** Download + initialise the model once. Tries the GPU (WebGL) delegate, then
+ *  falls back to CPU (WASM) so it runs on devices with no/weak GPU. */
 export async function loadFaceEngine(): Promise<FaceLandmarkerT> {
   if (landmarker) return landmarker;
   if (!loading) {
     loading = (async () => {
       const { FilesetResolver, FaceLandmarker } = await import("@mediapipe/tasks-vision");
       const fileset = await FilesetResolver.forVisionTasks(WASM_CDN);
-      landmarker = await FaceLandmarker.createFromOptions(fileset, {
-        baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
-        runningMode: "VIDEO",
-        numFaces: 2, // detect a 2nd face (cheating signal)
-        outputFacialTransformationMatrixes: true,
-      });
+      const make = (delegate: "GPU" | "CPU") =>
+        FaceLandmarker.createFromOptions(fileset, {
+          baseOptions: { modelAssetPath: MODEL_URL, delegate },
+          runningMode: "VIDEO",
+          numFaces: 2, // detect a 2nd face (cheating signal)
+          outputFacialTransformationMatrixes: true,
+        });
+      try {
+        landmarker = await make("GPU");
+        activeDelegate = "GPU";
+      } catch {
+        landmarker = await make("CPU"); // works on any device, just slower
+        activeDelegate = "CPU";
+      }
       return landmarker;
     })();
   }
@@ -69,17 +79,36 @@ function headAngles(data: number[]): { yaw: number; pitch: number } {
   return { yaw: yaw * toDeg, pitch: pitch * toDeg };
 }
 
+// Downscale the webcam frame before inference — far less work on weak/CPU devices.
+// Landmarks come back normalised (0..1), so accuracy is unaffected by the resize.
+const TARGET_W = 256;
+let scaleCanvas: HTMLCanvasElement | null = null;
+
+function downscaled(video: HTMLVideoElement): HTMLCanvasElement {
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
+  const w = TARGET_W;
+  const h = Math.max(1, Math.round((vh / vw) * TARGET_W));
+  if (!scaleCanvas) scaleCanvas = document.createElement("canvas");
+  if (scaleCanvas.width !== w) scaleCanvas.width = w;
+  if (scaleCanvas.height !== h) scaleCanvas.height = h;
+  const ctx = scaleCanvas.getContext("2d");
+  if (ctx) ctx.drawImage(video, 0, 0, w, h);
+  return scaleCanvas;
+}
+
 /** Analyse one video frame. Returns metrics for the primary face, or faceCount 0. */
 export function analyzeFrame(video: HTMLVideoElement, timestampMs: number): FrameMetrics {
   const engine = landmarker;
   if (!engine) return { faceCount: 0, ear: 0, yaw: 0, pitch: 0 };
 
-  const res = engine.detectForVideo(video, timestampMs);
+  const canvas = downscaled(video);
+  const res = engine.detectForVideo(canvas, timestampMs);
   const faces = res.faceLandmarks ?? [];
   if (faces.length === 0) return { faceCount: 0, ear: 0, yaw: 0, pitch: 0 };
 
-  const w = video.videoWidth || 640;
-  const h = video.videoHeight || 480;
+  const w = canvas.width;
+  const h = canvas.height;
   const lm = faces[0] as { x: number; y: number }[];
   const ear = (earOf(lm, LEFT_EYE, w, h) + earOf(lm, RIGHT_EYE, w, h)) / 2;
 

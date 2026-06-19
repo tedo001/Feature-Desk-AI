@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, CameraOff, Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { loadFaceEngine, analyzeFrame } from "../../lib/cv-web/faceEngine";
+import { loadFaceEngine, analyzeFrame, activeDelegate } from "../../lib/cv-web/faceEngine";
 import { AttentionEngine, type CvResult } from "../../lib/cv-web/attentionEngine";
 import { requestWebcam, stopStream } from "../../lib/cv-web/webcam";
 import { setMonitoringEnabled, pushAttention } from "../../lib/cv/cvStore";
@@ -35,6 +35,7 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
   const [loadingModel, setLoadingModel] = useState(false);
   const [result, setResult] = useState<CvResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"GPU" | "CPU" | null>(null);
 
   useEffect(() => () => stop(), []); // cleanup on unmount
 
@@ -55,6 +56,7 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
       }
       setLoadingModel(true);
       await loadFaceEngine(); // downloads model to this device (cached after)
+      setMode(activeDelegate);
       setLoadingModel(false);
 
       engineRef.current = new AttentionEngine();
@@ -149,6 +151,11 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
                 faces {result.faces} {result.phone ? "· 📱" : ""}
               </span>
             </div>
+          )}
+          {enabled && mode && (
+            <p className="mt-2 text-xs text-gray-400">
+              running on {mode === "GPU" ? "GPU (fast)" : "CPU (lite mode — works without a GPU)"}
+            </p>
           )}
         </div>
       </div>
