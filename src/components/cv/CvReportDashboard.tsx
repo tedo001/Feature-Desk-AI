@@ -27,6 +27,23 @@ function timeAgo(iso?: string): string {
   return `${Math.floor(s / 3600)}h ago`;
 }
 
+// Demo data shown until real students start monitoring (same pattern as the
+// other teacher tabs). Replaced automatically the moment real rows arrive.
+const nowIso = (sAgo: number) => new Date(Date.now() - sAgo * 1000).toISOString();
+const MOCK_NAMES: Record<string, string> = {
+  "demo-1": "Alice Johnson", "demo-2": "Bob Smith", "demo-3": "Charlie Brown",
+  "demo-4": "Diana Ross", "demo-5": "Ethan Hunt", "demo-6": "Fiona Glen", "demo-7": "George Hall",
+};
+const MOCK_CV: CvAttention[] = [
+  { student_id: "demo-1", status: "Focused", attention: 92, phone: false, faces: 1, created_at: nowIso(3) },
+  { student_id: "demo-4", status: "Focused", attention: 84, phone: false, faces: 1, created_at: nowIso(5) },
+  { student_id: "demo-7", status: "Distracted", attention: 58, phone: false, faces: 2, created_at: nowIso(8) },
+  { student_id: "demo-2", status: "Distracted", attention: 46, phone: false, faces: 1, created_at: nowIso(4) },
+  { student_id: "demo-5", status: "Distracted", attention: 33, phone: true, faces: 1, created_at: nowIso(6) },
+  { student_id: "demo-3", status: "Sleeping", attention: 7, phone: false, faces: 1, created_at: nowIso(12) },
+  { student_id: "demo-6", status: "Absent", attention: 0, phone: false, faces: 0, created_at: nowIso(20) },
+];
+
 export default function CvReportDashboard() {
   const [rows, setRows] = useState<Record<string, CvAttention>>({});
   const [names, setNames] = useState<Record<string, string>>({});
@@ -50,16 +67,19 @@ export default function CvReportDashboard() {
     return unsub;
   }, []);
 
-  const list = useMemo(() => Object.values(rows), [rows]);
+  const realList = useMemo(() => Object.values(rows), [rows]);
+  const isDemo = realList.length === 0;
+  const view = isDemo ? MOCK_CV : realList;
+  const viewNames = isDemo ? MOCK_NAMES : names;
   const stats = useMemo(() => {
-    const total = list.length;
-    const avg = total ? Math.round(list.reduce((s, r) => s + r.attention, 0) / total) : 0;
-    const count = (st: string) => list.filter((r) => r.status === st).length;
-    const phone = list.filter((r) => r.phone).length;
-    const multi = list.filter((r) => r.faces > 1).length;
+    const total = view.length;
+    const avg = total ? Math.round(view.reduce((s, r) => s + r.attention, 0) / total) : 0;
+    const count = (st: string) => view.filter((r) => r.status === st).length;
+    const phone = view.filter((r) => r.phone).length;
+    const multi = view.filter((r) => r.faces > 1).length;
     return { total, avg, focused: count("Focused"), distracted: count("Distracted"),
       sleeping: count("Sleeping"), absent: count("Absent"), alerts: phone + multi, phone, multi };
-  }, [list]);
+  }, [view]);
 
   const Stat = ({ icon, label, value, color }: { icon: ReactNode; label: string; value: number | string; color: string }) => (
     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
@@ -77,6 +97,11 @@ export default function CvReportDashboard() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Activity className="w-6 h-6 text-indigo-600" /> CV Analysis Report
+            {isDemo && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                Demo data
+              </span>
+            )}
           </h2>
           <p className="text-gray-500">Live attention monitoring from students' devices</p>
         </div>
@@ -97,11 +122,6 @@ export default function CvReportDashboard() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
           <p className="p-6 text-sm text-gray-400">Loading…</p>
-        ) : list.length === 0 ? (
-          <div className="p-10 text-center text-gray-400">
-            <Activity className="w-10 h-10 mx-auto mb-2 opacity-40" />
-            No students are being monitored yet. Students enable it from their device.
-          </div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500">
@@ -115,12 +135,12 @@ export default function CvReportDashboard() {
               </tr>
             </thead>
             <tbody>
-              {list
+              {[...view]
                 .sort((a, b) => a.attention - b.attention)
                 .map((r) => (
                   <tr key={r.student_id} className="border-t border-gray-100">
                     <td className="px-5 py-3 font-medium text-gray-800">
-                      {names[r.student_id] ?? r.student_id}
+                      {viewNames[r.student_id] ?? r.student_id}
                     </td>
                     <td className="px-5 py-3">
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLE[r.status] ?? "bg-gray-100 text-gray-600"}`}>
