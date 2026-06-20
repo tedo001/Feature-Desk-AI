@@ -36,7 +36,6 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
   const [result, setResult] = useState<CvResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"GPU" | "CPU" | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
   const [synced, setSynced] = useState(false);
 
   useEffect(() => () => stop(), []); // cleanup on unmount
@@ -84,10 +83,9 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
     const now = Date.now();
     if (studentId && now - lastPushRef.current >= PUSH_MS) {
       lastPushRef.current = now;
-      void pushAttention({ student_id: studentId, exam_id: examId, ...r }).then(({ error }) => {
-        setSyncError(error);
-        setSynced(!error);
-      });
+      void pushAttention({ student_id: studentId, exam_id: examId, ...r }).then(({ error }) =>
+        setSynced(!error),
+      );
     }
   }
 
@@ -102,7 +100,6 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
     engineRef.current = null;
     setResult(null);
     setEnabled(false);
-    setSyncError(null);
     setSynced(false);
     if (studentId) void setMonitoringEnabled(studentId, false, examId);
   }
@@ -173,11 +170,6 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
             <p className="mt-1.5 text-[10px] text-gray-400">
               {mode === "GPU" ? "GPU (fast)" : "CPU (lite)"}
               {synced && " · ✓ shared"}
-            </p>
-          )}
-          {syncError && (
-            <p className="mt-1 text-[10px] leading-snug text-red-500">
-              ⚠ Not syncing: {syncError}
             </p>
           )}
         </div>
