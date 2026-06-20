@@ -110,57 +110,56 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
   if (!studentId) return null;
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-2">
-        <ShieldCheck className="h-5 w-5 text-indigo-600" />
-        <h3 className="font-semibold text-gray-800">AI Attention Monitoring</h3>
+    <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center gap-1.5">
+        <ShieldCheck className="h-4 w-4 text-indigo-600" />
+        <h3 className="text-sm font-semibold text-gray-800">AI Attention Monitoring</h3>
       </div>
-      <p className="mt-2 text-sm text-gray-500">
-        Runs entirely in your browser on this device. Your camera is analysed locally and
-        only your attention status is shared with your teacher.
+      <p className="mt-1 text-[10px] leading-snug text-gray-500">
+        Analysed locally in your browser; only your status is shared with your teacher.
       </p>
 
-      <div className="mt-4 flex items-start gap-4">
+      <div className="mt-2 flex items-start gap-2.5">
         <video
           ref={videoRef}
           muted
           playsInline
-          className={`h-[120px] w-[160px] rounded-lg bg-black object-cover ${enabled ? "" : "hidden"}`}
+          className={`h-16 w-[88px] rounded-md bg-black object-cover ${enabled ? "" : "hidden"}`}
         />
         <div className="flex-1">
           <button
             onClick={enabled ? stop : start}
             disabled={loadingModel}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white ${
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white ${
               enabled ? "bg-red-500 hover:bg-red-600" : "bg-indigo-600 hover:bg-indigo-700"
             } disabled:opacity-60`}
           >
             {loadingModel ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : enabled ? (
-              <CameraOff className="h-4 w-4" />
+              <CameraOff className="h-3.5 w-3.5" />
             ) : (
-              <Camera className="h-4 w-4" />
+              <Camera className="h-3.5 w-3.5" />
             )}
-            {loadingModel ? "Loading models…" : enabled ? "Disable monitoring" : "Enable monitoring"}
+            {loadingModel ? "Loading…" : enabled ? "Disable" : "Enable monitoring"}
           </button>
 
           {result && (
-            <div className="mt-3 flex flex-col gap-2">
-              <div className="flex items-center gap-3">
+            <div className="mt-2 flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
                 <span
-                  className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                     STATUS_COLOR[result.status] ?? "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {result.status}
                 </span>
-                <span className="text-2xl font-bold text-gray-800">{result.attention}%</span>
-                <span className="text-sm text-gray-500">
+                <span className="text-lg font-bold text-gray-800">{result.attention}%</span>
+                <span className="text-[11px] text-gray-500">
                   faces {result.faces} {result.phone ? "· 📱" : ""}
                 </span>
               </div>
-              <div className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-gray-200">
+              <div className="h-1.5 w-full max-w-[170px] overflow-hidden rounded-full bg-gray-200">
                 <div
                   className={`h-full transition-all duration-300 ease-out ${
                     result.attention >= 80 ? "bg-green-500" : result.attention >= 50 ? "bg-amber-500" : "bg-red-500"
@@ -171,23 +170,22 @@ export default function WebMonitoringPanel({ examId }: { examId?: string }) {
             </div>
           )}
           {enabled && mode && (
-            <p className="mt-2 text-xs text-gray-400">
-              running on {mode === "GPU" ? "GPU (fast)" : "CPU (lite mode — works without a GPU)"}
-              {synced && " · ✓ shared with teacher"}
+            <p className="mt-1.5 text-[10px] text-gray-400">
+              {mode === "GPU" ? "GPU (fast)" : "CPU (lite)"}
+              {synced && " · ✓ shared"}
             </p>
           )}
           {syncError && (
-            <p className="mt-1 text-xs text-red-500">
-              ⚠ Not reaching the teacher dashboard: {syncError}. Check Supabase setup
-              (env keys + run database/cv_microservice_schema.sql).
+            <p className="mt-1 text-[10px] leading-snug text-red-500">
+              ⚠ Not syncing: {syncError}
             </p>
           )}
         </div>
       </div>
 
       {error && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          <AlertTriangle className="h-4 w-4" />
+        <div className="mt-2 flex items-center gap-1.5 rounded-md bg-red-50 p-2 text-[11px] text-red-700">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
           {error}
         </div>
       )}
