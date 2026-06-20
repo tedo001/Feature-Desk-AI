@@ -22,6 +22,7 @@ const STATUS_STYLE: Record<string, string> = {
 function timeAgo(iso?: string): string {
   if (!iso) return "—";
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 3) return "just now";
   if (s < 60) return `${s}s ago`;
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   return `${Math.floor(s / 3600)}h ago`;
@@ -48,6 +49,7 @@ export default function CvReportDashboard() {
   const [rows, setRows] = useState<Record<string, CvAttention>>({});
   const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [demo, setDemo] = useState<CvAttention[]>(MOCK_CV);
 
   async function load() {
     setLoading(true);
@@ -67,9 +69,29 @@ export default function CvReportDashboard() {
     return unsub;
   }, []);
 
+  // Animate the demo data so it feels like a live feed (until real data arrives).
+  useEffect(() => {
+    const empty = Object.keys(rows).length === 0;
+    if (!empty) return;
+    const id = setInterval(() => {
+      setDemo((prev) =>
+        prev.map((r) => {
+          const created_at = new Date().toISOString();
+          if (r.faces === 0) return { ...r, created_at }; // absent stays absent
+          const delta = Math.round((Math.random() - 0.45) * 12);
+          const attention = Math.max(2, Math.min(100, r.attention + delta));
+          const status =
+            attention >= 70 ? "Focused" : attention >= 30 ? "Distracted" : "Sleeping";
+          return { ...r, attention, status, created_at };
+        }),
+      );
+    }, 1500);
+    return () => clearInterval(id);
+  }, [rows]);
+
   const realList = useMemo(() => Object.values(rows), [rows]);
   const isDemo = realList.length === 0;
-  const view = isDemo ? MOCK_CV : realList;
+  const view = isDemo ? demo : realList;
   const viewNames = isDemo ? MOCK_NAMES : names;
   const stats = useMemo(() => {
     const total = view.length;
@@ -103,7 +125,13 @@ export default function CvReportDashboard() {
               </span>
             )}
           </h2>
-          <p className="text-gray-500">Live attention monitoring from students' devices</p>
+          <p className="flex items-center gap-2 text-gray-500">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+            </span>
+            Live attention monitoring from students' devices
+          </p>
         </div>
         <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50">
           <RefreshCw className="w-4 h-4" /> Refresh
